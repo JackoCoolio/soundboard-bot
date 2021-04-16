@@ -1,0 +1,4 @@
+node_modules/
+
+# I don't know why there would be any .ts files in this dir, but ignore it just in case.
+sounds/
