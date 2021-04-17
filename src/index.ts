@@ -4,9 +4,11 @@ import { VoiceManager } from './voicemanager'
 import {
     getSound,
     getSounds,
+    handleAddSession,
     initialize,
     initializeNewGuild,
     soundExists,
+    startAddSession,
 } from './sounds'
 
 // load config
@@ -45,6 +47,9 @@ client.on('error', error => {
 
 client.on('message', async message => {
     if (message.author.bot) return // ignore bots
+
+    handleAddSession(message)
+
     if (!message.content.startsWith(config.prefix)) return // ignore non-commands
 
     log('Received a message!')
@@ -53,9 +58,12 @@ client.on('message', async message => {
     const command = tokens[0].slice(config.prefix.length)
 
     if (command.toLocaleLowerCase() === 'ping') {
-        message.channel.send(new MessageEmbed().setTitle('Pong!')).then(() => {
-            message.delete().catch(log)
-        }).catch(log)
+        message.channel
+            .send(new MessageEmbed().setTitle('Pong!'))
+            .then(() => {
+                message.delete().catch(log)
+            })
+            .catch(log)
     } else if (command.toLocaleLowerCase() === 'list') {
         // this is will not work if message length is > 2000 chars
 
@@ -74,9 +82,16 @@ client.on('message', async message => {
             output += sound + '\n'
         }
 
-        message.channel.send(output).then(() => {
-            message.delete().catch(log)
-        }).catch(log)
+        message.channel
+            .send(output)
+            .then(() => {
+                message.delete().catch(log)
+            })
+            .catch(log)
+    } else if (command.toLocaleLowerCase() === 'add') {
+        startAddSession(message.member)
+
+        message.channel.send('Alright, send the file!').catch(log)
     } else {
         const voiceChannel = message.member.voice.channel
 
@@ -98,9 +113,12 @@ client.on('message', async message => {
                 })
                 .catch(log)
         } else {
-            message.channel.send("That sound doesn't exist!").then(() => {
-                message.delete().catch(log)
-            }).catch(log)
+            message.channel
+                .send("That sound doesn't exist!")
+                .then(() => {
+                    message.delete().catch(log)
+                })
+                .catch(log)
         }
     }
 })
