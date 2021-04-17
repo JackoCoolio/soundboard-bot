@@ -129,6 +129,8 @@ export function handleAddSession(message: Message): void {
 
         soundLists.get(id)[session.alias] = `${path}.${extension}`
 
+        addSessions.delete(member.id)
+
         Promise.all([
             writeFile(
                 `${soundDir}/${id}/sounds.json`,
