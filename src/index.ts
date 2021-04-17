@@ -6,7 +6,6 @@ import {
     getSounds,
     initialize,
     initializeNewGuild,
-    refreshSounds,
     soundExists,
 } from './sounds'
 
@@ -57,12 +56,6 @@ client.on('message', async message => {
         message.channel.send(new MessageEmbed().setTitle('Pong!')).then(() => {
             message.delete().catch(log)
         }).catch(log)
-    } else if (command.toLocaleLowerCase() === 'refresh') {
-        refreshSounds(message.guild.id).then(() => {
-            message.channel.send('Refreshed!').catch(log)
-
-            message.delete().catch(log)
-        })
     } else if (command.toLocaleLowerCase() === 'list') {
         // this is will not work if message length is > 2000 chars
 

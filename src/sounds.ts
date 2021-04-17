@@ -1,68 +1,54 @@
-import { existsSync, mkdirSync } from 'fs'
-import { readdir } from 'fs/promises'
-import { Client, Collection, Guild } from 'discord.js'
+import { get } from 'https'
+import { existsSync, mkdirSync, createWriteStream } from 'fs'
+import { readdir, readFile, writeFile } from 'fs/promises'
+import { Client, Collection, GuildMember, Message } from 'discord.js'
 import { log } from './log'
 import { getGuildID, GuildRepresentation } from './types'
+
+interface SoundList {
+    [alias: string]: string
+}
 
 const soundDir = './sounds'
 const soundLists: Collection<
     string,
-    Collection<string, string>
+    SoundList
 > = new Collection()
 
 export async function initialize(client: Client): Promise<void> {
     client.guilds.cache.forEach(async (guild, id) => {
-        soundLists.set(id, new Collection())
-
-        await refreshSounds(id)
-    })
-}
-
-export function getFile(guild: GuildRepresentation, alias: string): string {
-    return soundLists.get(getGuildID(guild)).get(alias)
-}
-
-export async function refreshSounds(guild: GuildRepresentation): Promise<void> {
-    const id = getGuildID(guild)
-    const list = soundLists.get(id)
-
-    list.clear()
-
-    const dir = `${soundDir}/${id}`
-    if (!existsSync(dir)) {
-        mkdirSync(dir)
-    }
-
-    readdir(dir)
-        .then(files => {
-            for (const file of files) {
-                const name = file.split('.')[0].toLocaleLowerCase()
-                list.set(name, file)
-            }
+        readFile(`${soundDir}/${id}/sounds.json`).then(data => {
+            const list: SoundList = JSON.parse(data.toString()).sounds
+            soundLists.set(id, list)
+        }).catch(() => {
+            initializeNewGuild(id)
+            soundLists.set(id, {})
         })
-        .catch(log)
+    })
 }
 
 export async function initializeNewGuild(
     guild: GuildRepresentation,
 ): Promise<void> {
-    return refreshSounds(guild)
+    writeFile(`${soundDir}/${getGuildID(guild)}/sounds.json`, '{"sounds":{}}').catch(log)
 }
 
 export function soundExists(
     guild: GuildRepresentation,
     alias: string,
 ): boolean {
-    return soundLists.get(getGuildID(guild)).has(alias)
+    return soundLists.get(getGuildID(guild)).hasOwnProperty(alias)
 }
 
 export function getSounds(guild: GuildRepresentation): Array<string> {
-    return soundLists.get(getGuildID(guild)).keyArray()
+    return Object.keys(soundLists.get(getGuildID(guild)))
 }
 
 export function getSound(guild: GuildRepresentation, alias: string): string {
     const id = getGuildID(guild)
-    const name = soundLists.get(getGuildID(guild)).get(alias)
+    const name = soundLists.get(getGuildID(guild))[alias]
+
+    if (!name) return
 
     return `${soundDir}/${id}/${name}`
 }
