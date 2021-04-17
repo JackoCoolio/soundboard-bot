@@ -92,6 +92,13 @@ client.on('message', async message => {
         startAddSession(message.member)
 
         message.channel.send('Alright, send the file!').catch(log)
+
+        message.delete().catch(log)
+    } else if (command.toLocaleLowerCase() === 'stop') {
+        voiceManager.stop(message.guild)
+        voiceManager.leave(message.guild)
+
+        message.delete().catch(log)
     } else {
         const voiceChannel = message.member.voice.channel
 

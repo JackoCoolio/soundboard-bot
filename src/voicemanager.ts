@@ -93,6 +93,15 @@ export class VoiceManager {
     }
 
     /**
+     * Ends the currently playing audio in the specified guild.
+     */
+    stop(guild: GuildRepresentation) {
+        const dispatcher = this.getDispatcher(guild)
+
+        dispatcher.end()
+    }
+
+    /**
      * Returns true if the stream dispatcher for the specified guild is paused.
      */
     isPaused(guild: GuildRepresentation): boolean {
